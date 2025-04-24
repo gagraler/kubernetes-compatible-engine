@@ -113,30 +113,29 @@ if err != nil {
 
 ---
 
-## 4. 核心逻辑的常见设计与封装
-假设打算封装一套适配不同 K8s 版本的"上层逻辑"，可以做如下设计：
+## 4. 核心逻辑的设计与封装
 
-1. **Canonical 数据模型**
-    - 在自己程序内部，定义一个（或一套）**Canonical 结构体**，它代表对于某个资源（如 Deployment）所需要的所有字段和含义。
+1. **CompatibleEngine 数据模型**
+    - 在程序内部，定义一个 **CompatibleEngine 结构体**，它代表对于某个资源（如 Deployment）所需要的所有字段和含义。
     - 这个结构体可以按照最常见或较新（更稳定）的版本去设计（例如对 Deployment 就参照 `apps/v1` 的字段）。
-    - 当需要**向集群写入**资源时，可以把 Canonical 结构体转换为"实际目标版本"所需的 JSON 结构（或 `Unstructured`）。
-    - 当**从集群读取**资源时，也可以反过来，从不同版本的 JSON 对象 parse 回 Canonical 结构体，在应用层做统一处理。
+    - 当需要**向集群写入**资源时，可以把 CompatibleEngine 结构体转换为 `实际目标版本` 所需的 JSON 结构（或 `Unstructured`）。
+    - 当**从集群读取**资源时，也可以反过来，从不同版本的 JSON 对象 parse 回 CompatibleEngine 结构体，在应用层做统一处理。
 2. **Version Adapter（资源适配器）**
-    - 对于每一种资源（Deployment, Ingress, Job, etc.），都实现一个适配器：
+    - 对于每一种资源（Deployment, Job, etc.），都实现一个适配器：
 
 ```go
-type compatibleEngineAdapter struct {
+type jobAdapter struct {
     dynamicClient dynamic.Interface
     gvr           schema.GroupVersionResource
     kind          string
 }
 
-func (d *compatibleEngineAdapter) Create(ctx context.Context, namespace string, c *CompatibleEngine) error { ... }
-func (d *compatibleEngineAdapter) Get(ctx context.Context, namespace, name string) (*CompatibleEngine, error) { ... }
+func (d *jobAdapter) Create(ctx context.Context, namespace string, c *CompatibleEngine) error { ... }
+func (d *jobAdapter) Get(ctx context.Context, namespace, name string) (*CompatibleEngine, error) { ... }
 // ...
 ```
 
-    - `compatibleEngineAdapter` 的构造函数里，会用 Discovery 的结果决定 `preferredGVR` 是什么。如果集群只支持 `extensions/v1beta1`，就用那个；如果能支持 `apps/v1`，就用 `apps/v1` 等。
+    - `jobAdapter` 的构造函数里，会用 Discovery 的结果决定 `preferredGVR` 是什么。如果集群只支持 `extensions/v1beta1`，就用那个；如果能支持 `apps/v1`，就用 `apps/v1` 等。
     - 在 `Create` 里，把传入的 CompatibleEngine 结构体转为对应版本的 `Unstructured`。针对不同版本可能要兼容处理字段差异（例如某些字段只有在 `apps/v1` 中才存在，或者 `extensions/v1beta1` 与 `apps/v1` 下的容器 spec 有些位置不同等）。
     - 这部分"转换"逻辑可以写成一段映射代码，也可以借助一些模版化/反射技巧，但大多数时候还是手写比较直观可控。
 3. **多版本兼容策略**
