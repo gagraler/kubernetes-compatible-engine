@@ -1,0 +1,25 @@
+Deployment:
+  - group: apps
+    version: v1
+  - group: apps
+    version: v1beta2
+StatefulSet:
+  - group: apps
+    version: v1
+DaemonSet:
+  - group: apps
+    version: v1
+Job:
+    - group: batch
+      version: v1
+    - group: batch
+      version: v1beta1
+CronJob:
+    - group: batch
+      version: v1
+    - group: batch
+      version: v1beta1
+# 自定义资源
+CustomResourceDefinition:
+  - group: extensions.k8s.io
+    version: v1
