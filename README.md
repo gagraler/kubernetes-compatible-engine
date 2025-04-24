@@ -1,13 +1,13 @@
 # Kubernetes Compatible Engine
 
-用于处理多版本 Kubernetes 集群的兼容性适配器
+兼容多版本 Kubernetes 集群API的引擎适配器
 
 ## ✨ Features
 
 - ✅ 自动发现并选择合适的 GroupVersionResource（GVR）
 - ✅ 支持 Kubernetes 多主版本兼容（已测试跨 10+ 版本）
 - ✅ 支持自定义资源 Kind → GVR 映射注册（支持 CRD）
-- ✅ 使用 Canonical 数据结构统一上层接口
+- ✅ 使用 CompatibleEngine 数据结构统一上层接口
 - ✅ 内置字段结构差异自动转换
 - ✅ 支持 `.spec` 字段自动校验（基于 OpenAPI Schema）
 - ✅ 支持 YAML / JSON 导入导出
