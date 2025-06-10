@@ -13,7 +13,7 @@ import (
     "k8s.io/client-go/dynamic"
     "k8s.io/client-go/discovery"
     "k8s.io/client-go/tools/clientcmd"
-    "path/to/adapter"
+    "https://github.com/gagraler/kubernetes-compatible-engine/adapter"
 )
 
 func main() {
